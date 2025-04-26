@@ -1,7 +1,6 @@
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tokio::io::{AsyncReadExt, AsyncSeekExt};
 use url::Url;
 use std::collections::hash_set;
 use std::path::{Path, PathBuf};
@@ -145,7 +144,6 @@ impl UploadFile {
     }
 }
 
-
 struct SliceFile {
     seq: usize,
     file_path: String,//slice file path
@@ -160,10 +158,6 @@ struct XPanFilePreCreateRequest {
     rtype: u32,//rename type
     autoinit: u32,
     uploadid: Option<String>, //断点续传时需要传入
-    // #[serde(rename = "content-md5")]
-    // content_md5: Option<String>,
-    // local_ctime: Option<u64>,//单位:秒
-    // local_mtime: Option<u64>,
     block_list: String, //json array
 }
 
@@ -184,9 +178,6 @@ impl XPanFilePreCreateRequest {
             autoinit: 1,
             rtype: 3,//统一覆盖
             uploadid: None,
-            // content_md5: None,
-            // local_ctime: None,
-            // local_mtime: None,
         }
     }
 }
@@ -242,7 +233,7 @@ pub struct XPanCreateResponse {
     fs_id: u64, //文件id
     md5: String, //文件的MD5，只有提交文件时才返回，提交目录时没有该值
     category: u32, //分类类型, 1 视频 2 音频 3 图片 4 文档 5 应用 6 其他 7 种子
-    server_filename: Option<String>, //服务器文件名 -居然和文档不一样 仅返回name而且和path一样
+    server_filename: Option<String>, //服务器文件名 -居然和文档不一样（不返回） 仅返回name而且和path一样
     path: String, //上传后使用的文件绝对路径
     size: u64, //文件大小
     ctime: u64, //创建时间
@@ -295,7 +286,7 @@ impl YunPanService {
                 }
             },
             Err(e) => {
-                println!("serde_json::from_str failed on precreate response: {:?}",raw_response_text);
+                eprintln!("serde_json::from_str failed on precreate response: {:?}",raw_response_text);
                 return Err(YunPanError::Serde(e))//解析错误
             }
         }
@@ -309,7 +300,7 @@ impl YunPanService {
         upload_id: &str,
         slice_file: &SliceFile,
     ) -> Result<XPanUploadResponse, YunPanError> {
-
+     
         let mut url = Url::parse("https://c.pcs.baidu.com/rest/2.0/pcs/superfile2").unwrap();
         url.query_pairs_mut()
             .append_pair("method", "upload")
@@ -338,7 +329,7 @@ impl YunPanService {
                 }
             },
             Err(e) => {
-                println!("serde_json::from_str failed on upload_slice response: {:?}",raw_response_text);
+                eprintln!("serde_json::from_str failed on upload_slice response: {:?}",raw_response_text);
                 return Err(YunPanError::Serde(e))//解析错误
             }
         };
@@ -378,7 +369,7 @@ impl YunPanService {
                 }
             },
             Err(e) => {
-                println!("serde_json::from_str failed on upload_slice response: {:?}",raw_response_text);
+                eprintln!("serde_json::from_str failed on upload_slice response: {:?}",raw_response_text);
                 return Err(YunPanError::Serde(e))//解析错误
             }
         };

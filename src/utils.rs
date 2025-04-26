@@ -37,6 +37,21 @@ pub struct SliceFileInfo<'a> {
     //pub start: u64, //实际由 seq * slice_size 可以计算得到 就不冗余了
     pub md5: String,
 }
+
+
+impl Clone for SliceFileInfo<'_> {
+    fn clone(&self) -> Self {
+        SliceFileInfo {
+            file_path: self.file_path,
+            size: self.size,
+            slice_size: self.slice_size,
+            seq: self.seq,
+            md5: self.md5.clone(),
+        }
+    }
+    
+}
+
 impl SliceFileInfo<'_> {
    
     pub async fn read(&self) -> Result<Vec<u8>, std::io::Error> {
